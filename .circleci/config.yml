@@ -26,13 +26,4 @@ jobs:
 workflows:
   my-workflow:
     jobs:
-      - install_aws_cli
-      - configure_aws_iam_profile:
-          requires:
-            - install_aws_cli
-      - create_infrastructure:
-          requires:
-            - configure_aws_iam_profile
-    #  - configure_infrastructure:
-    #      requires:
-    #        - build_inventory_file
+      - configure_infrastructure
