@@ -5,51 +5,23 @@ orbs:
   aws-cli: circleci/aws-cli@2.0.3
 
 jobs:
-  install_aws_cli:
+
+  configure_infrastructure: 
     docker:
-      - image: cimg/python:3.10.5
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
+      - add_ssh_keys:
+        # You can get this ID in the section where you registered the SSH Key
+        fingerprints: ["1f:47:83:cc:b7:52:02:aa:2e:36:62:95:b8:e3:17:15"]
       - run:
-          name: Install AWS CLI
+          name: Install Ansible
           command: |
-            pip3 install awscli
-  
-  configure_aws_iam_profile:
-    machine:
-      image: ubuntu-2004:202010-01 # recommended linux image
-    steps:
-      - checkout
+            apk add --update ansible
       - run:
-          name: Configure AWS IAM Profile
+          name: Run Playbook and Configure server
           command: |
-            aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
-            aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
-            aws configure set region ${AWS_DEFAULT_REGION}
-  
-  create_infrastructure: 
-    docker:
-      - image: amazon/aws-cli
-    steps:
-      - checkout
-      - run:
-          name: Create Cloudformation Stack
-          command: |
-            aws cloudformation deploy \
-            --template-file template.yml \
-            --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:5} \
-            --region ${AWS_DEFAULT_REGION}
-  
-  build_inventory_file:
-    machine:
-      image: ubuntu-2004:202010-01 # recommended linux image
-    steps:
-      - checkout
-      - run:
-          name: Build an Inventory File
-          command: |
-            echo "[all]" > inventory
-            aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> inventory
+            ansible-playbook -i inventory main.yml
 
 workflows:
   my-workflow:
@@ -61,9 +33,6 @@ workflows:
       - create_infrastructure:
           requires:
             - configure_aws_iam_profile
-      - build_inventory_file:
-          requires:
-            - create_infrastructure
     #  - configure_infrastructure:
     #      requires:
     #        - build_inventory_file
