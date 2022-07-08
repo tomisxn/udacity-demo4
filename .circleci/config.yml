@@ -21,8 +21,8 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-        # You can get this ID in the section where you registered the SSH Key
-          fingerprints: ["1f:47:83:cc:b7:52:02:aa:2e:36:62:95:b8:e3:17:15"]
+          # You can get this ID in the section where you registered the SSH Key
+          fingerprints: ["2a:2f:a6:8a:e8:3e:bc:76:bc:53:ad:f8:82:a7:83:b4"]
       - run:
           name: Install Ansible
           command: |
@@ -34,7 +34,7 @@ jobs:
       - run:
           name: Run Playbook and Configure server
           command: |
-            ansible-playbook -i inventory.txt main.yml --private-key udacity.pem
+            ansible-playbook -i inventory.txt main.yml
   
   smoke_test:
     docker:
