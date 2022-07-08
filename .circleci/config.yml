@@ -5,7 +5,7 @@ orbs:
   aws-cli: circleci/aws-cli@2.0.3
 
 jobs:
-  install-aws-cli:
+  install_aws_cli:
     docker:
       - image: cimg/python:3.10.5
     steps:
@@ -14,39 +14,50 @@ jobs:
           name: Install AWS CLI
           command: |
             pip3 install awscli
-  
-  configure-aws-iam-profile:
-    machine:
-      image: ubuntu-2004:202010-01 # recommended linux image
+
+  configure_infrastructure: 
+    docker:
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
+      - add_ssh_keys:
+          # You can get this ID in the section where you registered the SSH Key
+          fingerprints: ["2a:2f:a6:8a:e8:3e:bc:76:bc:53:ad:f8:82:a7:83:b4"]
       - run:
-          name: Configure AWS IAM Profile
+          name: Install Ansible
           command: |
-            aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}
-            aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
-            aws configure set region ${AWS_DEFAULT_REGION}
+            apk add --update ansible
+      - run:
+          name: Ansible Version
+          command: |
+            ansible --version
+      - run:
+          name: Run Playbook and Configure server
+          command: |
+            ansible-playbook -i inventory.txt main.yml
   
-  create_infrastructure: 
-      docker:
-        - image: amazon/aws-cli
-      steps:
-        - checkout
-        - run:
-            name: Create Cloudformation Stack
-            command: |
-              aws cloudformation deploy \
-              --template-file template.yml \
-              --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:5} \
-              --region ${AWS_DEFAULT_REGION}
+  smoke_test:
+    docker:
+      - image: alpine:latest
+    steps:
+      - run: apk add --update curl
+      - run:
+          name: smoke test
+          command: |
+            URL="https://blog.udacity.com/"
+            # Test if website exists
+            if curl -s --head ${URL} 
+            then
+              return 0
+            else
+              return 1
+            fi
 
 workflows:
   my-workflow:
     jobs:
-      - install-aws-cli
-      - configure-aws-iam-profile:
-          requires:
-            - install-aws-cli
-      - create_infrastructure:
-          requires:
-            - configure-aws-iam-profile
+      - install_aws_cli
+      #- configure_infrastructure:
+      #    requires:
+      #      - install_aws_cli
+      - smoke_test
