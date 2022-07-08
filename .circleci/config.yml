@@ -31,14 +31,33 @@ jobs:
           name: Ansible Version
           command: |
             ansible --version
+      #- run:
+      #    name: Run Playbook and Configure server
+      #    command: |
+      #      ansible-playbook -i inventory.txt main.yml
+  
+  smoke_test:
+    docker:
+      - image: alpine:latest
+    steps:
+      - run: apk add --update curl
       - run:
-          name: Run Playbook and Configure server
+          name: smoke test
           command: |
-            ansible-playbook -i inventory.txt main.yml
+            URL="https://blog.udacity.com/"
+            # Test if website exists
+            if curl -s --head ${URL} 
+            then
+              return 0
+            else
+              return 1
+            fi
+
 workflows:
   my-workflow:
     jobs:
       - install_aws_cli
-      - configure_infrastructure:
-          requires:
-            - install_aws_cli
+      #- configure_infrastructure:
+      #    requires:
+      #      - install_aws_cli
+      - smoke_test
