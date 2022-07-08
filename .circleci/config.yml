@@ -57,7 +57,7 @@ workflows:
   my-workflow:
     jobs:
       - install_aws_cli
-      #- configure_infrastructure:
-      #    requires:
-      #      - install_aws_cli
+      - configure_infrastructure:
+          requires:
+            - install_aws_cli
       - smoke_test
