@@ -5,6 +5,16 @@ orbs:
   aws-cli: circleci/aws-cli@2.0.3
 
 jobs:
+  install_aws_cli:
+    docker:
+      - image: cimg/python:3.10.5
+    steps:
+      - checkout
+      - run:
+          name: Install AWS CLI
+          command: |
+            pip3 install awscli
+
   configure_infrastructure: 
     docker:
       - image: ubuntu-2004:202010-01 # recommended linux image
@@ -28,4 +38,5 @@ jobs:
 workflows:
   my-workflow:
     jobs:
+      - install_aws_cli
       - configure_infrastructure
