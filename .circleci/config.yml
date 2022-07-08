@@ -31,10 +31,10 @@ jobs:
           name: Ansible Version
           command: |
             ansible --version
-      #- run:
-      #    name: Run Playbook and Configure server
-      #    command: |
-      #      ansible-playbook -i inventory.txt main.yml
+      - run:
+          name: Run Playbook and Configure server
+          command: |
+            ansible-playbook -i inventory.txt main.yml
   
   smoke_test:
     docker:
@@ -57,7 +57,7 @@ workflows:
   my-workflow:
     jobs:
       - install_aws_cli
-      #- configure_infrastructure:
-      #    requires:
-      #      - install_aws_cli
+      - configure_infrastructure:
+          requires:
+            - install_aws_cli
       - smoke_test
